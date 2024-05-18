@@ -89,6 +89,8 @@ def init_search_engine():
         paths = [company_path + "/" + path for path in os.listdir(company_path)]
         object_json_paths += [path for path in paths if path.endswith("json")]
 
+    # @TEMP
+    object_json_paths = object_json_paths[:10]
 
     objects = []
     for object_json_path in object_json_paths:
@@ -126,25 +128,10 @@ def init_search_engine():
         for index in top_k_indices:
             obj = objects[index]
             obj_with_confidence = obj.copy()  # Shallow copy to avoid modifying original objects
-            obj_with_confidence["search_confidence"] = normalized_scores[index]
+            obj_with_confidence["search_confidence"] = float(normalized_scores[index])
             top_k_objects.append(obj_with_confidence)
 
         return top_k_objects
 
     print("Search engine ready")
     return search
-
-
-
-
-    # search_results_indexes = search("art-deco rug", device, model, image_embeddings)
-    # search_results =
-    # print(search_results)
-    # search_results_indexes = search("scandinavian chair", device, model, image_embeddings)
-    # search_results = [objects[index]["image_url"] for index in search_results_indexes]
-    # print(search_results)
-    # search_results_indexes = search("bohemian rug", device, model, image_embeddings)
-    # search_results = [objects[index]["image_url"] for index in search_results_indexes]
-    # print(search_results)
-
-    # print("Success!")

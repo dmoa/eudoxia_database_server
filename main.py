@@ -18,4 +18,4 @@ def protected_search():
 
 
 jwt = JWTManager(app)
-app.run(ssl_context='adhoc', port=8843, debug=True, use_reloader=True)
+app.run(ssl_context='adhoc', port=80, debug=True, use_reloader=True)
