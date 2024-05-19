@@ -128,7 +128,7 @@ def init_search_engine():
         for index in top_k_indices:
             obj = objects[index]
             obj_with_confidence = obj.copy()  # Shallow copy to avoid modifying original objects
-            obj_with_confidence["search_confidence"] = float(normalized_scores[index])
+            obj_with_confidence["search_confidence"] = round(float(normalized_scores[index]), 1)
             top_k_objects.append(obj_with_confidence)
 
         return top_k_objects
