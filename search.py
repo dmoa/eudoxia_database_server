@@ -98,7 +98,7 @@ def init_search_engine():
         obj = json.loads(read_entire_file(object_json_path))
         image_path = object_json_path[:-5] + "." + obj["extension"]
         obj["image_encoded"] = base64.b64encode(read_entire_file_rb(image_path)).decode('utf-8')
-        url = os.path.basename(object_json_path)
+        url = base64.b64decode(os.path.splitext(os.path.basename(object_json_path))[0]).decode("utf-8")
         obj["url"] = url # @TODO this should be done in post process json
 
         objects.append(obj)
