@@ -8,13 +8,24 @@ import json
 import io
 from torchvision.transforms import Resize, CenterCrop, ToTensor, Normalize, Compose
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import random
 
 from util import *
 
-
-
 set_signal_to_nothing()
 
+
+# @TODO turn most of this into post processing
+def get_product(object_json_path):
+    obj = json.loads(read_entire_file(object_json_path))
+    image_path = object_json_path[:-5] + "." + obj["extension"]
+    obj["image_encoded"] = base64.b64encode(read_entire_file_rb(image_path)).decode('utf-8')
+    url = base64.b64decode(os.path.splitext(os.path.basename(object_json_path))[0]).decode("utf-8")
+    obj["url"] = url # @TODO this should be done in post process json
+
+    # obj["image_url"] = f"data:image/jpeg;base64,{obj}"
+
+    return obj
 
 
 # gpt generated
@@ -27,11 +38,10 @@ def print_progress_bar(task_name, num_tasks_completed, total_tasks):
     percent = ("{0:.1f}").format(100 * (num_tasks_completed / float(total_tasks)))
     filled_length = int(length * num_tasks_completed // total_tasks)
     bar = fill * filled_length + '-' * (length - filled_length)
-    print(f'\r{prefix}: |{bar}| {percent}% {suffix}', end = '\r')
+    print(f'\r{prefix}: |{bar}| {percent}% {suffix}', end='\r')
     # Print New Line on Complete
     if num_tasks_completed == total_tasks:
         print()
-
 
 def encode_images(device, model, preprocess, objects):
     embeddings = []
@@ -71,8 +81,7 @@ def encode_images(device, model, preprocess, objects):
 
     return embeddings
 
-
-def init_search_engine():
+def init_search_engine(last_embedded=True):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("Using", device)
     model, preprocess = clip.load("ViT-L/14@336px", device=device)
@@ -89,25 +98,26 @@ def init_search_engine():
         paths = [company_path + "/" + path for path in os.listdir(company_path)]
         object_json_paths += [path for path in paths if path.endswith("json")]
 
-    # @TEMP
-    object_json_paths = object_json_paths[:10]
+    random.shuffle(object_json_paths)
+    object_json_paths = object_json_paths[:250]
 
     objects = []
     for object_json_path in object_json_paths:
 
-        obj = json.loads(read_entire_file(object_json_path))
-        image_path = object_json_path[:-5] + "." + obj["extension"]
-        obj["image_encoded"] = base64.b64encode(read_entire_file_rb(image_path)).decode('utf-8')
-        url = base64.b64decode(os.path.splitext(os.path.basename(object_json_path))[0]).decode("utf-8")
-        obj["url"] = url # @TODO this should be done in post process json
+        obj = get_product(object_json_path)
 
         objects.append(obj)
 
-    # @TEMP [:100]
-    image_embeddings = encode_images(device, model, preprocess, objects)
+    if last_embedded and os.path.exists("last_embedded.pt"):
+        print("Loading embeddings from last_embedded.pt")
+        image_embeddings = torch.load("last_embedded.pt")
+    else:
+        print("Creating new embeddings")
+        image_embeddings = encode_images(device, model, preprocess, objects)
+        torch.save(image_embeddings, "last_embedded.pt")
 
     def search(text):
-        top_k = 25
+        top_k = 50
 
         with torch.no_grad():
             text_encoded = clip.tokenize([text]).to(device)
