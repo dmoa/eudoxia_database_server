@@ -94,24 +94,25 @@ def init_search_engine(last_embedded=True):
     # fact. indices will give us the image path from this.
 
     object_json_paths = []
-    for company_path in company_paths:
-        paths = [company_path + "/" + path for path in os.listdir(company_path)]
-        object_json_paths += [path for path in paths if path.endswith("json")]
-
-    random.shuffle(object_json_paths)
-    object_json_paths = object_json_paths[:250]
-
-    objects = []
-    for object_json_path in object_json_paths:
-
-        obj = get_product(object_json_path)
-
-        objects.append(obj)
 
     if last_embedded and os.path.exists("last_embedded.pt"):
+        object_json_paths = read_entire_file("last_embedded_paths.txt")
         print("Loading embeddings from last_embedded.pt")
         image_embeddings = torch.load("last_embedded.pt")
     else:
+        for company_path in company_paths:
+            paths = [company_path + "/" + path for path in os.listdir(company_path)]
+            object_json_paths += [path for path in paths if path.endswith("json")]
+
+        random.shuffle(object_json_paths)
+        object_json_paths = object_json_paths[:250]
+
+        write_entire_file_w("last_embedded_paths.txt", "\n".join(object_json_paths))
+
+        objects = []
+        for object_json_path in object_json_paths:
+            obj = get_product(object_json_path)
+            objects.append(obj)
         print("Creating new embeddings")
         image_embeddings = encode_images(device, model, preprocess, objects)
         torch.save(image_embeddings, "last_embedded.pt")

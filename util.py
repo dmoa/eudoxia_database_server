@@ -19,3 +19,15 @@ def read_entire_file_rb(file_path):
     data = f.read()
     f.close()
     return data
+
+
+def write_entire_file_w(file_path, string_to_write):
+    f = open(file_path, "w", encoding="utf-8")
+    f.write(string_to_write)
+    f.close()
+
+
+def write_entire_file_wb(file_path, string_to_write):
+    f = open(file_path, "wb")
+    f.write(string_to_write)
+    f.close()
