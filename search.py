@@ -94,11 +94,20 @@ def init_search_engine(last_embedded=True):
     # fact. indices will give us the image path from this.
 
     object_json_paths = []
+    objects = []
 
-    if last_embedded and os.path.exists("last_embedded.pt"):
-        object_json_paths = read_entire_file("last_embedded_paths.txt")
+    if last_embedded:
+        if not os.path.exists("last_embedded.pt"):
+            print("Error! Couldn't load previously embedded things")
+            return
+
         print("Loading embeddings from last_embedded.pt")
         image_embeddings = torch.load("last_embedded.pt")
+
+        object_json_paths = read_entire_file("last_embedded_paths.txt").split("\n")
+        for object_json_path in object_json_paths:
+            obj = get_product(object_json_path)
+            objects.append(obj)
     else:
         for company_path in company_paths:
             paths = [company_path + "/" + path for path in os.listdir(company_path)]
@@ -109,13 +118,13 @@ def init_search_engine(last_embedded=True):
 
         write_entire_file_w("last_embedded_paths.txt", "\n".join(object_json_paths))
 
-        objects = []
         for object_json_path in object_json_paths:
             obj = get_product(object_json_path)
             objects.append(obj)
         print("Creating new embeddings")
         image_embeddings = encode_images(device, model, preprocess, objects)
         torch.save(image_embeddings, "last_embedded.pt")
+
 
     def search(text):
         top_k = 50

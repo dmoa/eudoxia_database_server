@@ -13,7 +13,7 @@ app = Flask(__name__)
 def protected_search():
     response = {}
     response["message"] = "Search request received"
-    response["search_result"] = search(request.form["search_input"])
+    response["search_results"] = search(request.form["search_input"])
     return jsonify(response)
 
 
