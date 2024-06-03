@@ -2,3 +2,4 @@ Pillow
 torchvision
 flask
 openai-clip
+flask_jwt_extended

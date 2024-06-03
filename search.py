@@ -114,7 +114,7 @@ def init_search_engine(last_embedded=True):
             object_json_paths += [path for path in paths if path.endswith("json")]
 
         random.shuffle(object_json_paths)
-        object_json_paths = object_json_paths[:250]
+#        object_json_paths = object_json_paths[:250]
 
         write_entire_file_w("last_embedded_paths.txt", "\n".join(object_json_paths))
 
