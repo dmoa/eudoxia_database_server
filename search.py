@@ -24,7 +24,6 @@ def get_product(object_json_path):
     obj["url"] = url # @TODO this should be done in post process json
 
     # obj["image_url"] = f"data:image/jpeg;base64,{obj}"
-
     return obj
 
 
