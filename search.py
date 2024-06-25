@@ -81,7 +81,10 @@ def encode_images(device, model, preprocess, objects):
 
     return embeddings
 
-def init_search_engine(last_embedded=True):
+def init_search_engine(last_embedded, embedding_name):
+    embedding_pt = embedding_name + ".pt"
+    embedding_txt = embedding_name + ".txt"
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print("Using", device)
     model, preprocess = clip.load("ViT-L/14@336px", device=device)
@@ -97,14 +100,14 @@ def init_search_engine(last_embedded=True):
     objects = []
 
     if last_embedded:
-        if not os.path.exists("last_embedded.pt"):
+        if not os.path.exists(embedding_pt):
             print("Error! Couldn't load previously embedded things")
-            return
+            exit(0)
 
-        print("Loading embeddings from last_embedded.pt")
-        image_embeddings = torch.load("last_embedded.pt")
+        print("Loading embeddings from " + embedding_pt)
+        image_embeddings = torch.load(embedding_pt, map_location=torch.device('cpu')).float()
 
-        object_json_paths = read_entire_file("last_embedded_paths.txt").split("\n")
+        object_json_paths = read_entire_file(embedding_txt).split("\n")
         for object_json_path in object_json_paths:
             obj = get_product(object_json_path)
             objects.append(obj)
@@ -114,16 +117,16 @@ def init_search_engine(last_embedded=True):
             object_json_paths += [path for path in paths if path.endswith("json")]
 
         random.shuffle(object_json_paths)
-#        object_json_paths = object_json_paths[:250]
+        object_json_paths = object_json_paths[:10]
 
-        write_entire_file_w("last_embedded_paths.txt", "\n".join(object_json_paths))
+        write_entire_file_w(embedding_txt, "\n".join(object_json_paths))
 
         for object_json_path in object_json_paths:
             obj = get_product(object_json_path)
             objects.append(obj)
         print("Creating new embeddings")
         image_embeddings = encode_images(device, model, preprocess, objects)
-        torch.save(image_embeddings, "last_embedded.pt")
+        torch.save(image_embeddings, embedding_pt)
 
 
     def search(text):
@@ -131,7 +134,7 @@ def init_search_engine(last_embedded=True):
 
         with torch.no_grad():
             text_encoded = clip.tokenize([text]).to(device)
-            text_embedding = model.encode_text(text_encoded)
+            text_embedding = model.encode_text(text_encoded).float()
 
         similarities = (text_embedding @ image_embeddings.T).squeeze(0)
 

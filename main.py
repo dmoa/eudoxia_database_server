@@ -5,7 +5,7 @@ import secrets
 from search import *
 
 
-search = init_search_engine(last_embedded=False)
+search = init_search_engine(last_embedded=True, embedding_name="dump")
 app = Flask(__name__)
 
 
