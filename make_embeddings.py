@@ -16,10 +16,6 @@ if len(sys.argv) < 3:
     print("no arguments! Need 2")
     exit()
 
-if not sys.argv[2].isnumeric():
-    print("arg not numeric!")
-    exit(0)
-
 embedding_name = sys.argv[1]
 num_products = int(sys.argv[2])
 
@@ -109,7 +105,8 @@ for company_path in company_paths:
     object_json_paths += [path for path in paths if path.endswith("json")]
 
 random.shuffle(object_json_paths)
-object_json_paths = object_json_paths[:num_products]
+if num_products != -1:
+    object_json_paths = object_json_paths[:num_products]
 
 write_entire_file_w(embedding_txt, "\n".join(object_json_paths))
 
